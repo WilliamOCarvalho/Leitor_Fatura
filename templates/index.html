@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leitor de Fatura — Corridas</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <!-- DataTables (Bootstrap 5) -->
+  <link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+  <!-- Seu CSS -->
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Topbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary shadow-sm">
+    <div class="container py-1">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+        <span class="brand-badge"><i class="bi bi-receipt-cutoff"></i></span>
+        <span>
+          <strong>Leitor de Fatura</strong>
+          </span>
+      </a>
+
+      <div class="ms-auto d-flex gap-2">
+        <a class="btn btn-outline-light btn-sm" href="/" title="Limpar / reiniciar">
+          <i class="bi bi-arrow-clockwise"></i> Novo
+        </a>
+        <a class="btn btn-light btn-sm" href="https://localhost" style="display:none;"></a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-4">
+    <!-- Header -->
+    <div class="row g-3 align-items-stretch">
+      <!-- Upload Card -->
+      <div class="col-12 col-lg-7">
+        <div class="card card-glass h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-start justify-content-between mb-3">
+              <div>
+                <h5 class="mb-1"><i class="bi bi-upload me-1"></i> Importar fatura (PDF)</h5>
+                <p class="text-muted mb-0">Faça upload do PDF e a gente lista as cobranças de corridas automaticamente.</p>
+              </div>
+              <span class="pill">
+                <i class="bi bi-shield-check me-1"></i> Processa local
+              </span>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="upload-form">
+              <label class="upload-zone w-100">
+                <input id="pdfInput" type="file" name="pdf" accept="application/pdf" required>
+                <div class="upload-zone-inner">
+                  <div class="icon-wrap">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                  </div>
+                  <div class="text">
+                    <div class="title">Arraste o PDF aqui</div>
+                    <div class="subtitle">ou clique para selecionar</div>
+                    <div id="fileName" class="filename mt-2">Nenhum arquivo selecionado</div>
+                  </div>
+                </div>
+              </label>
+
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-lightning-charge me-1"></i> Processar
+                </button>
+
+                {% if lancamentos and lancamentos|length > 0 %}
+                  <a href="/download" class="btn btn-success">
+                    <i class="bi bi-download me-1"></i> Baixar Excel
+                  </a>
+                {% else %}
+                  <button type="button" class="btn btn-outline-success" disabled title="Faça upload para gerar a planilha">
+                    <i class="bi bi-download me-1"></i> Baixar Excel
+                  </button>
+                {% endif %}
+
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#helpModal">
+                  <i class="bi bi-question-circle me-1"></i> Dicas
+                </button>
+              </div>
+
+              <div class="mt-3 small text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Se o PDF for “imagem/escaneado”, pode não identificar tudo sem OCR.
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary + Keywords -->
+      <div class="col-12 col-lg-5">
+        <div class="row g-3">
+          <!-- Summary -->
+          <div class="col-12">
+            <div class="card h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <h6 class="mb-0"><i class="bi bi-graph-up me-1"></i> Resumo</h6>
+                  <span class="badge text-bg-light">Atual</span>
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-6">
+                    <div class="stat">
+                      <div class="stat-label">Total geral</div>
+                      <div class="stat-value">
+                        R$ {{ "%.2f"|format(total or 0) }}
+                      </div>
+                      <div class="stat-hint text-muted">somatório dos encontrados</div>
+                    </div>
+                  </div>
+
+                  <div class="col-6">
+                    <div class="stat">
+                      <div class="stat-label">Lançamentos</div>
+                      <div class="stat-value">
+                        {{ (lancamentos|length) if lancamentos else 0 }}
+                      </div>
+                      <div class="stat-hint text-muted">linhas na planilha</div>
+                    </div>
+                  </div>
+                </div>
+
+                {% if lancamentos and lancamentos|length > 0 %}
+                <hr class="my-3">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="text-muted small">
+                    <i class="bi bi-check2-circle me-1"></i> Dados carregados. Pode baixar o Excel.
+                  </div>
+                  <a href="/download" class="btn btn-sm btn-success">
+                    <i class="bi bi-download me-1"></i> Excel
+                  </a>
+                </div>
+                {% else %}
+                <hr class="my-3">
+                <div class="text-muted small">
+                  <i class="bi bi-arrow-up-right me-1"></i> Faça upload para ver o resumo e a tabela.
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Keywords -->
+          <div class="col-12">
+            <div class="card h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between mb-2">
+                  <div>
+                    <h6 class="mb-0"><i class="bi bi-tags me-1"></i> Termos monitorados</h6>
+                    <div class="text-muted small">Adicione variações do nome que aparecem na fatura.</div>
+                  </div>
+                </div>
+
+                <form action="/add_keyword" method="post" class="d-flex gap-2">
+                  <input class="form-control" name="termo" placeholder='Ex: "UBER*TRIP", "99APP"' autocomplete="off">
+                  <button class="btn btn-outline-primary" type="submit">
+                    <i class="bi bi-plus-lg"></i>
+                  </button>
+                </form>
+
+                <div class="mt-3 d-flex flex-wrap gap-2">
+                  {% for k in keywords %}
+                    <span class="kw-chip">{{ k }}</span>
+                  {% endfor %}
+                </div>
+
+                <div class="mt-3 small text-muted">
+                  <i class="bi bi-lightbulb me-1"></i>
+                  Dica: se vier “UBER *TRIP HELP.UBER.COM”, adicione “HELP.UBER.COM” ou “UBER *TRIP”.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div>
+            <h5 class="mb-0"><i class="bi bi-table me-1"></i> Lançamentos encontrados</h5>
+            <div class="text-muted small">Use a busca para filtrar por Uber/99, data, valor etc.</div>
+          </div>
+          <div class="d-flex gap-2">
+            {% if lancamentos and lancamentos|length > 0 %}
+              <a href="/download" class="btn btn-success btn-sm">
+                <i class="bi bi-download me-1"></i> Baixar Excel
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table id="tbl" class="table table-striped table-hover align-middle" style="width:100%">
+            <thead>
+              <tr>
+                <th>App/Termo</th>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th class="text-end">Valor (R$)</th>
+                <th class="text-center">Página</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if lancamentos %}
+                {% for l in lancamentos %}
+                <tr>
+                  <td><span class="badge text-bg-primary-subtle text-primary-emphasis">{{ l.app }}</span></td>
+                  <td class="text-nowrap">{{ l.data }}</td>
+                  <td class="text-wrap">{{ l.descricao }}</td>
+                  <td class="text-end fw-semibold">R$ {{ "%.2f"|format(l.valor) }}</td>
+                  <td class="text-center text-muted">{{ l.pagina }}</td>
+                </tr>
+                {% endfor %}
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if not lancamentos or lancamentos|length == 0 %}
+          <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-file-earmark"></i></div>
+            <div class="empty-title">Nenhum lançamento exibido</div>
+            <div class="empty-subtitle">Envie um PDF para começar.</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+
+  <!-- Help Modal -->
+  <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-question-circle me-1"></i> Dicas rápidas</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <ul class="mb-0">
+            <li><strong>Layout de fatura varia</strong>: se estiver capturando pouco, adicione novos termos (variações do nome do fornecedor).</li>
+            <li><strong>Estornos</strong>: às vezes vêm negativos/entre parênteses. Eles podem aparecer como valor negativo na planilha.</li>
+            <li><strong>PDF escaneado</strong>: se você não consegue selecionar o texto no PDF, vai precisar OCR (dá pra integrar depois).</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- DataTables -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+
+  <script>
+    // Mostra nome do arquivo no upload
+    const pdfInput = document.getElementById("pdfInput");
+    const fileName = document.getElementById("fileName");
+    if (pdfInput) {
+      pdfInput.addEventListener("change", () => {
+        fileName.textContent = pdfInput.files?.[0]?.name ?? "Nenhum arquivo selecionado";
+      });
+    }
+
+    // Ativa DataTables quando tiver tabela
+    document.addEventListener("DOMContentLoaded", function () {
+      const table = document.getElementById("tbl");
+      if (table) {
+        new DataTable("#tbl", {
+          pageLength: 10,
+          lengthMenu: [10, 25, 50, 100],
+          order: [[1, "desc"]],
+          language: {
+            search: "Buscar:",
+            lengthMenu: "Mostrar _MENU_",
+            info: "Exibindo _START_ a _END_ de _TOTAL_",
+            infoEmpty: "Sem dados para exibir",
+            zeroRecords: "Nada encontrado",
+            paginate: { first: "Primeiro", last: "Último", next: "Próximo", previous: "Anterior" }
+          },
+          columnDefs: [
+            { targets: 3, type: "num" }
+          ]
+        });
+      }
+    });
+  </script>
+</body>
+</html>
