@@ -12,14 +12,24 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 KEYWORDS_FILE = Path("keywords.json")
 
 
+def limpar_uploads():
+    for arquivo in UPLOAD_DIR.iterdir():
+        if arquivo.is_file():
+            arquivo.unlink()
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     lancamentos = []
     total = 0
 
     if request.method == "POST":
-        pdf = request.files["pdf"]
+        pdf = request.files.get("pdf")
+
         if pdf:
+            # 🔥 LIMPA A PASTA ANTES DE SALVAR
+            limpar_uploads()
+
             nome = f"{uuid.uuid4()}.pdf"
             caminho = UPLOAD_DIR / nome
             pdf.save(caminho)
