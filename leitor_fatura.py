@@ -229,7 +229,7 @@ def write_xlsx(output_path: Path, lancs: List[Lancamento], keywords: List[str]) 
 
     # formatação básica
     for row in range(2, ws.max_row + 1):
-        ws.cell(row=row, column=4).number_format = '"R$" #,##0.00;[Red]\-"R$" #,##0.00'
+        ws.cell(row=row, column=4).number_format = '"R$" #,##0.00;[Red]\\-"R$" #,##0.00'
 
     autosize_columns(ws)
 
@@ -256,7 +256,7 @@ def write_xlsx(output_path: Path, lancs: List[Lancamento], keywords: List[str]) 
 
     # formata valores
     for row in range(2, ws2.max_row + 1):
-        ws2.cell(row=row, column=2).number_format = '"R$" #,##0.00;[Red]\-"R$" #,##0.00'
+        ws2.cell(row=row, column=2).number_format = '"R$" #,##0.00;[Red]\\-"R$" #,##0.00'
         if ws2.cell(row=row, column=1).value == "TOTAL GERAL":
             ws2.cell(row=row, column=1).font = Font(bold=True)
             ws2.cell(row=row, column=2).font = Font(bold=True)
@@ -274,7 +274,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Leitor de fatura PDF: encontra gastos (Uber/99 etc.) e gera planilha com totais."
     )
-    sub = parser.add_subparsers(dest="cmd", required=True)
+    sub = parser.add_subparsers(dest="cmd")
 
     p_run = sub.add_parser("run", help="Ler PDF e gerar XLSX")
     p_run.add_argument("pdf", type=str, help="Caminho do PDF da fatura")
@@ -293,6 +293,10 @@ def main():
     p_rm.add_argument("-k", "--keywords", type=str, default=DEFAULT_KEYWORDS_FILE)
 
     args = parser.parse_args()
+    if args.cmd is None:
+        parser.print_help()
+        return
+
     kw_path = Path(getattr(args, "keywords", DEFAULT_KEYWORDS_FILE))
 
     if args.cmd == "list":

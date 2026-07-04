@@ -24,9 +24,9 @@ O sistema foi pensado para facilitar o controle mensal de gastos e permitir evol
 - **Python 3**
 - **Flask** – Backend web
 - **pdfplumber** – Leitura e extração de texto de PDFs
+- **openpyxl** – Geração da planilha Excel
 - **HTML / CSS / JavaScript** – Interface
 - **Bootstrap** – Estilização (opcional)
-- **Pandas** – Organização e soma de dados
 
 ---
 
@@ -36,22 +36,50 @@ O sistema foi pensado para facilitar o controle mensal de gastos e permitir evol
 leitor_fatura/
 │
 ├── app.py                 # Arquivo principal da aplicação Flask
+├── leitor_fatura.py       # Parser do PDF e exportação XLSX
 ├── requirements.txt       # Dependências do projeto
 ├── README.md              # Documentação
+├── keywords.json          # Palavras-chave para identificação de cobranças
+├── resultado.xlsx         # Planilha gerada após o processamento
 │
 ├── templates/
 │   ├── index.html         # Interface principal
 │
 ├── static/
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       └── main.js
+│   └── style.css
 │
-├── uploads/               # PDFs enviados pelo usuário
-│
-├── services/
-│   ├── leitor_pdf.py      # Lógica de leitura do PDF
-│   └── extrator.py        # Regras de extração e filtros
-│
-└── keywords.json          # Palavras-chave para identificação de cobranças
+└── uploads/               # Criado automaticamente ao rodar a aplicação
+```
+
+## ▶️ Como rodar no Windows com ambiente virtual
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python app.py
+```
+
+Acesse `http://127.0.0.1:5000` no navegador.
+
+Nas próximas execuções, basta ativar o ambiente e iniciar a aplicação:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python app.py
+```
+
+Se o PowerShell bloquear a ativação, execute diretamente:
+
+```powershell
+.\.venv\Scripts\python.exe app.py
+```
+
+## Rodar com o Python local
+
+As dependências também podem ser instaladas e executadas sem ativar um ambiente:
+
+```powershell
+python -m pip install -r requirements.txt
+python app.py
+```

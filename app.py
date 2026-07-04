@@ -10,6 +10,7 @@ UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 KEYWORDS_FILE = Path("keywords.json")
+RESULTADO_FILE = Path("resultado.xlsx")
 
 
 def limpar_uploads():
@@ -38,8 +39,7 @@ def index():
             lancamentos = read_pdf_extract(caminho, keywords)
             total = sum(l.valor for l in lancamentos)
 
-            output = Path("resultado.xlsx")
-            write_xlsx(output, lancamentos, keywords)
+            write_xlsx(RESULTADO_FILE, lancamentos, keywords)
 
     return render_template(
         "index.html",
@@ -59,7 +59,9 @@ def add_kw():
 
 @app.route("/download")
 def download():
-    return send_file("resultado.xlsx", as_attachment=True)
+    if not RESULTADO_FILE.exists():
+        return redirect("/")
+    return send_file(RESULTADO_FILE, as_attachment=True)
 
 
 if __name__ == "__main__":
